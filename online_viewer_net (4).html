@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viral Guru — YouTube Analyzer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --bg: #0c0c0f;
+  --surface: #141418;
+  --card: #1c1c22;
+  --border: #2a2a35;
+  --red: #ff3b3b;
+  --red-dim: rgba(255,59,59,0.12);
+  --red-glow: rgba(255,59,59,0.3);
+  --orange: #ff8c00;
+  --green: #00d97e;
+  --blue: #4f9fff;
+  --purple: #9d6fff;
+  --text: #f0f0f8;
+  --sub: #6b6b80;
+  --sans: 'Poppins', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* Ambient */
+body::before {
+  content: '';
+  position: fixed; top: 0; left: 0; right: 0; height: 400px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,59,59,0.07) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+header {
+  padding: 36px 0 28px;
+  display: flex; align-items: center; gap: 16px;
+}
+
+.logo-box {
+  width: 48px; height: 48px;
+  background: var(--red);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 24px var(--red-glow);
+  flex-shrink: 0;
+}
+
+.logo-text { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+.logo-text span { color: var(--red); }
+.logo-sub { font-size: 12px; color: var(--sub); margin-top: 2px; }
+
+/* ── API KEY BAR ── */
+.api-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.api-bar label { font-size: 12px; font-weight: 600; color: var(--sub); white-space: nowrap; }
+
+.api-inp {
+  flex: 1; min-width: 180px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+}
+
+.api-inp:focus { border-color: var(--red); }
+
+.save-key-btn {
+  background: var(--red-dim);
+  border: 1px solid rgba(255,59,59,0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: var(--red);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.save-key-btn:hover { background: rgba(255,59,59,0.2); }
+
+.key-status {
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.key-status.ok { background: rgba(0,217,126,0.12); color: var(--green); }
+.key-status.no { background: rgba(255,59,59,0.1); color: var(--red); }
+
+/* ── INPUT SECTION ── */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.input-card h2 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.url-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.url-inp {
+  flex: 1; min-width: 220px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 18px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.url-inp:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-dim);
+}
+
+.url-inp::placeholder { color: var(--sub); opacity: 0.6; }
+
+.analyze-btn {
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 28px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.analyze-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--red-glow);
+}
+
+.analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.hints {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--sub);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+/* ── ERROR ── */
+.error-box {
+  background: rgba(255,59,59,0.08);
+  border: 1px solid rgba(255,59,59,0.3);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #ff8080;
+  display: none;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.error-box.show { display: block; }
+
+/* ── LOADING ── */
+.loading-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 48px 32px;
+  text-align: center;
+  display: none;
+  margin-bottom: 24px;
+}
+
+.loading-card.show { display: block; }
+
+.spinner {
+  width: 44px; height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.loading-sub { font-size: 13px; color: var(--sub); margin-bottom: 24px; }
+
+.steps-list { display: flex; flex-direction: column; gap: 10px; max-width: 300px; margin: 0 auto; text-align: left; }
+
+.step { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); transition: color 0.3s; }
+.step.done { color: var(--green); }
+.step.active { color: var(--text); font-weight: 500; }
+
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.step.done .step-dot { background: var(--green); }
+.step.active .step-dot { background: var(--red); animation: blink 1s infinite; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── RESULTS ── */
+#results { display: none; }
+#results.show { display: block; }
+
+/* Channel card */
+.channel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.ch-thumb {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+
+.ch-thumb-placeholder {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.ch-info { flex: 1; }
+
+.ch-name {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 2px;
+  letter-spacing: -0.3px;
+}
+
+.ch-handle { font-size: 13px; color: var(--sub); font-family: var(--mono); margin-bottom: 8px; }
+
+.ch-desc {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.ch-stats {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+.stat-val { font-size: 16px; font-weight: 800; color: var(--red); }
+.stat-lbl { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+
+/* Analysis summary */
+.analysis-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.analysis-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.analysis-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.analysis-item .label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.analysis-item .value {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Section headers */
+.section-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 28px 0 14px;
+}
+
+.section-hd h2 { font-size: 17px; font-weight: 800; }
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-green { background: rgba(0,217,126,0.1); color: var(--green); }
+.badge-orange { background: rgba(255,140,0,0.1); color: var(--orange); }
+
+/* Topic cards */
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 14px;
+}
+
+.topic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.topic-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.topic-card.trending::after { background: linear-gradient(90deg, var(--red), var(--orange)); }
+.topic-card.info::after { background: linear-gradient(90deg, var(--blue), var(--purple)); }
+
+.topic-card:hover { transform: translateY(-3px); }
+.topic-card.trending:hover { border-color: rgba(255,59,59,0.4); }
+.topic-card.info:hover { border-color: rgba(79,159,255,0.4); }
+.topic-card:hover::after { opacity: 1; }
+
+.topic-type {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.type-trending { color: var(--red); }
+.type-info { color: var(--blue); }
+
+.topic-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--border);
+  margin-left: auto;
+}
+
+.topic-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.topic-why {
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.65;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hook-box {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.hook-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.hook-text {
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.score-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+
+.score-lbl { font-size: 10px; color: var(--sub); width: 70px; }
+
+.score-bar {
+  flex: 1; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 1.2s ease;
+}
+
+.fill-red { background: linear-gradient(90deg, var(--red), var(--orange)); }
+.fill-blue { background: linear-gradient(90deg, var(--blue), var(--purple)); }
+
+.score-num { font-size: 11px; font-weight: 700; width: 28px; text-align: right; font-family: var(--mono); }
+.score-num.red { color: var(--red); }
+.score-num.blue { color: var(--blue); }
+
+/* Tags */
+.topic-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.tag {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--sub);
+  font-family: var(--mono);
+}
+
+/* Footer note */
+.footer-note {
+  margin-top: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.7;
+  display: flex; gap: 10px;
+}
+
+/* Responsive */
+@media(max-width:580px) {
+  .topics-grid { grid-template-columns: 1fr; }
+  .ch-stats { gap: 8px; }
+  .stat { padding: 7px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-box">🎯</div>
+    <div>
+      <div class="logo-text">Viral<span>Guru</span></div>
+      <div class="logo-sub">YouTube Channel Deep Analyzer · AI-powered Topic Engine</div>
+    </div>
+  </header>
+
+  <!-- Input -->
+  <div class="input-card">
+    <h2>Channel ya Video URL daalo</h2>
+    <div class="url-row">
+      <input class="url-inp" id="urlInp" type="text"
+        placeholder="youtube.com/channel/UC... ya youtu.be/VIDEO_ID ya @channelname"
+        autocomplete="off"/>
+      <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">🔍 Analyze</button>
+    </div>
+    <div class="hints">
+      <span class="hint">✅ Channel URL</span>
+      <span class="hint">✅ Video URL</span>
+      <span class="hint">✅ @handle</span>
+      <span class="hint">✅ Channel ID</span>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Loading -->
+  <div class="loading-card" id="loadingCard">
+    <div class="spinner"></div>
+    <div class="loading-title">Channel ka DNA analyze ho raha hai...</div>
+    <div class="loading-sub">Real YouTube data fetch kar raha hoon</div>
+    <div class="steps-list">
+      <div class="step" id="st1"><div class="step-dot"></div>Channel ID dhundh raha hoon</div>
+      <div class="step" id="st2"><div class="step-dot"></div>Channel details fetch kar raha hoon</div>
+      <div class="step" id="st3"><div class="step-dot"></div>Recent videos analyze kar raha hoon</div>
+      <div class="step" id="st4"><div class="step-dot"></div>Content pattern samajh raha hoon</div>
+      <div class="step" id="st5"><div class="step-dot"></div>AI se topics generate kar raha hoon</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- Channel card -->
+    <div id="channelCard"></div>
+
+    <!-- Analysis -->
+    <div id="analysisCard"></div>
+
+    <!-- Trending Topics -->
+    <div class="section-hd">
+      <h2>🔥 Trending Topics</h2>
+      <span class="badge badge-red">5 Viral-Ready</span>
+    </div>
+    <div class="topics-grid" id="trendingGrid"></div>
+
+    <!-- Info Topics -->
+    <div class="section-hd">
+      <h2>💡 Shocking Info Topics</h2>
+      <span class="badge badge-blue" style="background:rgba(79,159,255,0.1);color:var(--blue);">5 High-Retention</span>
+    </div>
+    <div class="topics-grid" id="infoGrid"></div>
+
+    <div class="footer-note">
+      <span>⚡</span>
+      <span>Ye topics <strong>real channel data</strong> ke analysis par based hain — tone, length, style sab study kiya gaya hai. Quality hook + sahi editing ke saath ye topics viral hone ke high chances hain. Topics channel ke actual pattern se match karte hain.</span>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────
+const YT_KEY = 'AIzaSyDZc3KjfMit_OipZHC_dM2lLGlOINRhuz4';
+
+// Pre-fill key
+window.addEventListener('load', () => {
+  // User can paste their key here
+});
+
+// ─────────────────────────────────────────
+// STEP ANIMATION
+// ─────────────────────────────────────────
+let stepTimer = null;
+
+function startSteps() {
+  const ids = ['st1','st2','st3','st4','st5'];
+  const delays = [0, 1500, 3500, 6000, 9000];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.className = 'step'; el.querySelector('.step-dot').className = 'step-dot'; }
+  });
+  delays.forEach((d, i) => {
+    setTimeout(() => {
+      if (i > 0) {
+        const prev = document.getElementById(ids[i-1]);
+        if (prev) prev.className = 'step done';
+      }
+      const cur = document.getElementById(ids[i]);
+      if (cur) cur.className = 'step active';
+    }, d);
+  });
+}
+
+function doneSteps() {
+  ['st1','st2','st3','st4','st5'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'step done';
+  });
+}
+
+// ─────────────────────────────────────────
+// URL PARSER
+// ─────────────────────────────────────────
+function parseInput(input) {
+  input = input.trim();
+
+  // Video URL
+  const vidMatch = input.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([A-Za-z0-9_-]{11})/);
+  if (vidMatch) return { type: 'video', id: vidMatch[1] };
+
+  // Channel handle @
+  const handleMatch = input.match(/(?:youtube\.com\/)?@([\w.-]+)/);
+  if (handleMatch) return { type: 'handle', id: handleMatch[1] };
+
+  // Channel URL with /channel/UC...
+  const channelMatch = input.match(/youtube\.com\/channel\/(UC[\w-]+)/);
+  if (channelMatch) return { type: 'channelId', id: channelMatch[1] };
+
+  // Channel URL with /c/ or /user/
+  const cMatch = input.match(/youtube\.com\/(?:c\/|user\/)([\w.-]+)/);
+  if (cMatch) return { type: 'handle', id: cMatch[1] };
+
+  // Bare channel ID
+  if (/^UC[\w-]{20,}$/.test(input)) return { type: 'channelId', id: input };
+
+  // Bare video ID
+  if (/^[A-Za-z0-9_-]{11}$/.test(input)) return { type: 'video', id: input };
+
+  // @handle without URL
+  if (input.startsWith('@')) return { type: 'handle', id: input.slice(1) };
+
+  return null;
+}
+
+// ─────────────────────────────────────────
+// YOUTUBE API CALLS
+// ─────────────────────────────────────────
+async function ytFetch(endpoint, params) {
+  let urlStr = `https://www.googleapis.com/youtube/v3/${endpoint}?key=${encodeURIComponent(YT_KEY)}`;
+  Object.entries(params).forEach(([k,v]) => {
+    urlStr += `&${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
+  });
+  const res = await fetch(urlStr);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `YouTube API error ${res.status}`);
+  }
+  return res.json();
+}
+
+async function getChannelByHandle(handle) {
+  // Try forHandle first
+  try {
+    const data = await ytFetch('channels', { part: 'snippet,statistics,contentDetails', forHandle: handle });
+    if (data.items?.length) return data.items[0];
+  } catch {}
+
+  // Try search
+  const search = await ytFetch('search', {
+    part: 'snippet', type: 'channel', q: handle, maxResults: 1
+  });
+  if (!search.items?.length) throw new Error(`"${handle}" naam ka channel nahi mila`);
+  const cid = search.items[0].snippet.channelId;
+  const data = await ytFetch('channels', { part: 'snippet,statistics,contentDetails', id: cid });
+  if (!data.items?.length) throw new Error('Channel details nahi mili');
+  return data.items[0];
+}
+
+async function getChannelById(id) {
+  const data = await ytFetch('channels', { part: 'snippet,statistics,contentDetails', id });
+  if (!data.items?.length) throw new Error('Channel nahi mila');
+  return data.items[0];
+}
+
+async function getChannelByVideoId(videoId) {
+  const data = await ytFetch('videos', { part: 'snippet,statistics', id: videoId });
+  if (!data.items?.length) throw new Error('Video nahi mila');
+  const channelId = data.items[0].snippet.channelId;
+  const ch = await getChannelById(channelId);
+  return { channel: ch, video: data.items[0] };
+}
+
+async function getRecentVideos(channelId, maxResults = 20) {
+  // Get uploads playlist
+  const chData = await ytFetch('channels', { part: 'contentDetails', id: channelId });
+  const uploadsId = chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+  if (!uploadsId) return [];
+
+  const pl = await ytFetch('playlistItems', {
+    part: 'snippet,contentDetails',
+    playlistId: uploadsId,
+    maxResults
+  });
+
+  if (!pl.items?.length) return [];
+
+  // Fetch video stats
+  const ids = pl.items.map(i => i.contentDetails.videoId).join(',');
+  const stats = await ytFetch('videos', { part: 'snippet,statistics,contentDetails', id: ids });
+  return stats.items || [];
+}
+
+// ─────────────────────────────────────────
+// DURATION PARSER
+// ─────────────────────────────────────────
+function parseDuration(iso) {
+  if (!iso) return 0;
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+}
+
+function fmtDuration(secs) {
+  if (!secs) return '—';
+  const m = Math.floor(secs/60), s = secs%60;
+  if (m >= 60) return `${Math.floor(m/60)}h ${m%60}m`;
+  return `${m}m ${s}s`;
+}
+
+function fmtNum(n) {
+  n = parseInt(n||0);
+  if (n >= 1e7) return (n/1e7).toFixed(1)+'Cr';
+  if (n >= 1e5) return (n/1e5).toFixed(1)+'L';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+
+// ─────────────────────────────────────────
+// ANALYZE CHANNEL DATA
+// ─────────────────────────────────────────
+function analyzeVideos(videos) {
+  if (!videos.length) return {};
+
+  const durations = videos.map(v => parseDuration(v.contentDetails?.duration)).filter(d => d > 0);
+  const avgDur = durations.reduce((a,b) => a+b, 0) / (durations.length || 1);
+
+  const views = videos.map(v => parseInt(v.statistics?.viewCount||0));
+  const avgViews = views.reduce((a,b) => a+b, 0) / (views.length || 1);
+  const maxViews = Math.max(...views);
+
+  const titles = videos.map(v => v.snippet?.title || '');
+  const tags = videos.flatMap(v => v.snippet?.tags || []);
+
+  // Detect language
+  const hindiCount = titles.filter(t => /[\u0900-\u097F]/.test(t)).length;
+  const language = hindiCount > titles.length * 0.4 ? 'Hindi' : 'English/Hinglish';
+
+  // Detect tone from titles
+  const questionCount = titles.filter(t => /\?|kya|kaise|kyun|how|why|what|क्या|कैसे|क्यों/.test(t.toLowerCase())).length;
+  const listCount = titles.filter(t => /\d+\s*(tips|ways|reason|secret|fact|tarike|cheez)/.test(t.toLowerCase())).length;
+  const storyCount = titles.filter(t => /story|meri|mera|main|I |my |maine/.test(t.toLowerCase())).length;
+  const shockCount = titles.filter(t => /shocking|secret|exposed|dark|truth|reality|cha?mat|viral/.test(t.toLowerCase())).length;
+
+  let tone = 'Informational';
+  if (questionCount > titles.length * 0.4) tone = 'Question-based (curiosity driven)';
+  else if (listCount > titles.length * 0.3) tone = 'List-based (numbered tips)';
+  else if (storyCount > titles.length * 0.25) tone = 'Storytelling / personal narrative';
+  else if (shockCount > titles.length * 0.2) tone = 'Shock + reveal style';
+
+  // Top performing topics
+  const topVideos = [...videos].sort((a,b) =>
+    parseInt(b.statistics?.viewCount||0) - parseInt(a.statistics?.viewCount||0)
+  ).slice(0, 5);
+
+  // Upload frequency
+  const dates = videos.map(v => new Date(v.snippet?.publishedAt)).filter(d => !isNaN(d)).sort((a,b) => b-a);
+  let freq = 'Unknown';
+  if (dates.length >= 2) {
+    const diffDays = (dates[0] - dates[dates.length-1]) / (1000*60*60*24);
+    const perWeek = (dates.length / diffDays) * 7;
+    if (perWeek >= 5) freq = 'Daily ya usse zyada';
+    else if (perWeek >= 3) freq = `${Math.round(perWeek)}x per week`;
+    else if (perWeek >= 1) freq = 'Weekly';
+    else freq = 'Monthly / irregular';
+  }
+
+  // Detect short vs long
+  const shorts = durations.filter(d => d <= 60).length;
+  const longs = durations.filter(d => d > 60).length;
+  const contentType = shorts > longs * 2 ? 'Mostly Shorts' : longs > shorts * 2 ? 'Mostly Long-form' : 'Mix of Shorts + Long';
+
+  return {
+    avgDuration: avgDur,
+    avgViews,
+    maxViews,
+    language,
+    tone,
+    topVideos,
+    uploadFreq: freq,
+    contentType,
+    totalAnalyzed: videos.length,
+    commonTags: [...new Set(tags)].slice(0, 8),
+    titles
+  };
+}
+
+// ─────────────────────────────────────────
+// AI TOPIC GENERATION (Claude API)
+// ─────────────────────────────────────────
+async function generateTopics(channelInfo, analysis) {
+  const topTitles = (analysis.topVideos || []).map(v => v.snippet?.title).filter(Boolean).join('\n');
+  const allTitles = (analysis.titles || []).slice(0, 15).join('\n');
+
+  const prompt = `You are an expert YouTube growth strategist with deep knowledge of Indian YouTube trends, viral psychology, and content strategy.
+
+REAL CHANNEL DATA:
+- Channel Name: ${channelInfo.name}
+- Subscribers: ${fmtNum(channelInfo.subscribers)}
+- Total Videos: ${channelInfo.videoCount}
+- Niche/Description: ${channelInfo.description?.slice(0,300)}
+- Language: ${analysis.language}
+- Content Type: ${analysis.contentType}
+- Avg Video Duration: ${fmtDuration(Math.round(analysis.avgDuration))}
+- Upload Frequency: ${analysis.uploadFreq}
+- Avg Views per Video: ${fmtNum(Math.round(analysis.avgViews))}
+- Detected Tone Style: ${analysis.tone}
+
+TOP PERFORMING TITLES (most views):
+${topTitles}
+
+RECENT VIDEO TITLES (for pattern study):
+${allTitles}
+
+TASK: Based on DEEP study of this EXACT channel's style, tone, language, and niche — generate:
+
+1. FIVE (5) TRENDING VIRAL TOPICS — topics that have HIGH viral potential RIGHT NOW, match channel's style exactly
+2. FIVE (5) SHOCKING INFORMATIVE TOPICS — not trending but deeply engaging, high watch-time, shocking facts/info style
+
+For EACH topic, provide:
+- Title in the EXACT same language/style/tone as this channel (Hindi/Hinglish/English matching the channel)
+- Why this will work for THIS specific channel (2 lines)
+- Hook line — opening 5-7 seconds of the video, matching this channel's hook style EXACTLY
+- Viral score (0-100), Retention score (0-100)
+- 3 hashtag tags
+
+Respond ONLY in valid JSON, no markdown:
+
+{
+  "channelAnalysis": {
+    "niche": "exact niche",
+    "audienceType": "audience description",
+    "contentStyle": "detailed style analysis",
+    "hookPattern": "how this channel opens its videos",
+    "titleFormula": "title formula this channel uses"
+  },
+  "trendingTopics": [
+    {
+      "title": "exact video title",
+      "why": "why this works for this channel",
+      "hook": "exact hook line for first 7 seconds",
+      "viralScore": 88,
+      "retentionScore": 82,
+      "tags": ["tag1","tag2","tag3"]
+    }
+  ],
+  "infoTopics": [
+    {
+      "title": "exact video title",
+      "why": "why this works",
+      "hook": "exact hook line",
+      "viralScore": 72,
+      "retentionScore": 91,
+      "tags": ["tag1","tag2","tag3"]
+    }
+  ]
+}`;
+
+  const GKEY = 'AQ.Ab8RN6IpdBtWmOw3b3FsCcJFvw8C72-BOVKv-AXbiIKlE39eQQ';
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GKEY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.8, maxOutputTokens: 2000 }
+    })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error?.message || 'Gemini API error ' + res.status);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const clean = text.replace(/```json|```/g,'').trim();
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+  if (start === -1) throw new Error('AI se response nahi aaya');
+  return JSON.parse(clean.slice(start, end+1));
+}
+
+// ─────────────────────────────────────────
+// MAIN FLOW
+// ─────────────────────────────────────────
+async function startAnalysis() {
+  const input = document.getElementById('urlInp').value.trim();
+  if (!input) { showError('Channel URL ya Video URL daalo pehle'); return; }
+  hideError();
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('loadingCard').classList.add('show');
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('analyzeBtn').textContent = '⏳ Analyzing...';
+  startSteps();
+
+  try {
+    const parsed = parseInput(input);
+    if (!parsed) throw new Error('URL samajh nahi aaya — channel URL, video URL, ya @handle daalo');
+
+    let channel, video;
+
+    // Step 1: Get channel
+    setStep(1);
+    if (parsed.type === 'video') {
+      const res = await getChannelByVideoId(parsed.id);
+      channel = res.channel;
+      video = res.video;
+    } else if (parsed.type === 'handle') {
+      channel = await getChannelByHandle(parsed.id);
+    } else {
+      channel = await getChannelById(parsed.id);
+    }
+
+    if (!channel) throw new Error('Channel data nahi mila');
+
+    const snippet = channel.snippet || {};
+    const stats = channel.statistics || {};
+
+    const channelInfo = {
+      id: channel.id,
+      name: snippet.title || 'Unknown',
+      handle: snippet.customUrl || '',
+      description: snippet.description || '',
+      thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
+      subscribers: stats.subscriberCount || 0,
+      videoCount: stats.videoCount || 0,
+      viewCount: stats.viewCount || 0,
+      country: snippet.country || '',
+      publishedAt: snippet.publishedAt || ''
+    };
+
+    // Step 2: Fetch videos
+    setStep(2);
+    await new Promise(r => setTimeout(r, 300));
+    setStep(3);
+    const videos = await getRecentVideos(channel.id, 20);
+
+    // Step 3: Analyze
+    setStep(4);
+    const analysis = analyzeVideos(videos);
+
+    // Step 4: AI topics
+    setStep(5);
+    const aiData = await generateTopics(channelInfo, analysis);
+
+    doneSteps();
+
+    // Render
+    renderResults(channelInfo, analysis, aiData);
+
+    document.getElementById('loadingCard').classList.remove('show');
+    document.getElementById('results').classList.add('show');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch(e) {
+    document.getElementById('loadingCard').classList.remove('show');
+    showError('❌ Error: ' + e.message);
+    console.error(e);
+  } finally {
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('analyzeBtn').textContent = '🔍 Analyze';
+  }
+}
+
+function setStep(n) {
+  for (let i = 1; i < n; i++) {
+    const el = document.getElementById('st'+i);
+    if (el) el.className = 'step done';
+  }
+  const cur = document.getElementById('st'+n);
+  if (cur) cur.className = 'step active';
+}
+
+// ─────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────
+function renderResults(ch, analysis, ai) {
+  // Channel card
+  const thumb = ch.thumbnail
+    ? `<img class="ch-thumb" src="${ch.thumbnail}" onerror="this.style.display='none'">`
+    : `<div class="ch-thumb-placeholder">📺</div>`;
+
+  document.getElementById('channelCard').innerHTML = `
+    <div class="channel-card">
+      ${thumb}
+      <div class="ch-info">
+        <div class="ch-name">${esc(ch.name)}</div>
+        <div class="ch-handle">${ch.handle ? '@'+ch.handle : ch.id}</div>
+        <div class="ch-desc">${esc((ch.description||'').slice(0,180))}${ch.description?.length>180?'…':''}</div>
+        <div class="ch-stats">
+          <div class="stat"><div class="stat-val">${fmtNum(ch.subscribers)}</div><div class="stat-lbl">Subscribers</div></div>
+          <div class="stat"><div class="stat-val">${fmtNum(ch.videoCount)}</div><div class="stat-lbl">Videos</div></div>
+          <div class="stat"><div class="stat-val">${fmtNum(ch.viewCount)}</div><div class="stat-lbl">Total Views</div></div>
+          <div class="stat"><div class="stat-val">${fmtNum(Math.round(analysis.avgViews))}</div><div class="stat-lbl">Avg Views</div></div>
+        </div>
+      </div>
+    </div>`;
+
+  // Analysis card
+  const ca = ai.channelAnalysis || {};
+  document.getElementById('analysisCard').innerHTML = `
+    <div class="analysis-card">
+      <h3>📊 Channel DNA Analysis</h3>
+      <div class="analysis-grid">
+        <div class="analysis-item"><div class="label">Niche</div><div class="value">${esc(ca.niche||analysis.tone||'—')}</div></div>
+        <div class="analysis-item"><div class="label">Audience</div><div class="value">${esc(ca.audienceType||'—')}</div></div>
+        <div class="analysis-item"><div class="label">Content Style</div><div class="value">${esc(ca.contentStyle||analysis.contentType||'—')}</div></div>
+        <div class="analysis-item"><div class="label">Tone</div><div class="value">${esc(analysis.tone)}</div></div>
+        <div class="analysis-item"><div class="label">Avg Duration</div><div class="value">${fmtDuration(Math.round(analysis.avgDuration))}</div></div>
+        <div class="analysis-item"><div class="label">Upload Freq</div><div class="value">${esc(analysis.uploadFreq)}</div></div>
+        <div class="analysis-item"><div class="label">Language</div><div class="value">${esc(analysis.language)}</div></div>
+        <div class="analysis-item"><div class="label">Hook Pattern</div><div class="value">${esc(ca.hookPattern||'—')}</div></div>
+        <div class="analysis-item"><div class="label">Title Formula</div><div class="value">${esc(ca.titleFormula||'—')}</div></div>
+        <div class="analysis-item"><div class="label">Videos Analyzed</div><div class="value">${analysis.totalAnalyzed} recent videos</div></div>
+      </div>
+    </div>`;
+
+  // Trending topics
+  const tg = document.getElementById('trendingGrid');
+  tg.innerHTML = '';
+  (ai.trendingTopics||[]).forEach((t, i) => {
+    tg.insertAdjacentHTML('beforeend', topicHTML(t, 'trending', i+1));
+  });
+
+  // Info topics
+  const ig = document.getElementById('infoGrid');
+  ig.innerHTML = '';
+  (ai.infoTopics||[]).forEach((t, i) => {
+    ig.insertAdjacentHTML('beforeend', topicHTML(t, 'info', i+1));
+  });
+}
+
+function topicHTML(t, type, num) {
+  const isT = type === 'trending';
+  const typeLabel = isT ? '🔥 VIRAL TRENDING' : '💡 SHOCKING INFO';
+  const typeCls = isT ? 'type-trending' : 'type-info';
+  const fillCls = isT ? 'fill-red' : 'fill-blue';
+  const numCls = isT ? 'red' : 'blue';
+
+  return `
+    <div class="topic-card ${type}">
+      <div class="topic-type">
+        <span class="${typeCls}">${typeLabel}</span>
+        <span class="topic-num">#${num}</span>
+      </div>
+      <div class="topic-title">${esc(t.title)}</div>
+      <div class="topic-why">${esc(t.why)}</div>
+      <div class="hook-box">
+        <div class="hook-label">🎬 Opening Hook (0-7 sec)</div>
+        <div class="hook-text">"${esc(t.hook)}"</div>
+      </div>
+      <div class="score-row">
+        <div class="score-lbl">Viral Score</div>
+        <div class="score-bar"><div class="score-fill ${fillCls}" style="width:${t.viralScore||75}%"></div></div>
+        <div class="score-num ${numCls}">${t.viralScore||75}</div>
+      </div>
+      <div class="score-row">
+        <div class="score-lbl">Retention</div>
+        <div class="score-bar"><div class="score-fill ${fillCls}" style="width:${t.retentionScore||75}%"></div></div>
+        <div class="score-num ${numCls}">${t.retentionScore||75}</div>
+      </div>
+      <div class="topic-tags">
+        ${(t.tags||[]).map(tag => `<span class="tag">#${esc(tag)}</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.innerHTML = msg;
+  el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideError() {
+  document.getElementById('errorBox').classList.remove('show');
+}
+
+document.getElementById('urlInp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startAnalysis();
+});
+
+document.getElementById('apiKeyInp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveKey();
+});
+</script>
+</body>
+</html>
